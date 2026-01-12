@@ -17,11 +17,14 @@ class Ship():
 
         #Сохранение вещественной координаты центра корабля
         self.x = float(self.rect.x)
+        self.y = float(self.rect.y)
 
 
         #Флаг перемещения
         self.moving_right=False
         self.moving_left = False
+        self.moving_top= False
+        self.moving_bottom=False
 
     def update(self):
         """Обновляет позицию корабля с учетом флага"""
@@ -31,6 +34,11 @@ class Ship():
             self.x -= self.settings.ship_speed
         self.rect.x=self.x
 
+        if self.moving_top and self.rect.top>0:
+            self.y -= self.settings.ship_speed
+        if self.moving_bottom and self.rect.bottom<self.screen_rect.bottom:
+            self.y += self.settings.ship_speed
+        self.rect.y=self.y
 
     def blitme(self):
         """Рисует корабль в тек.позиции"""
