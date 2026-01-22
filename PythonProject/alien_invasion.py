@@ -32,23 +32,20 @@ class AlienInvasion:
 
         self._create_fleet()
 
-
     def run_game(self):
-        """Запуск основного цикла игры"""
         while True:
             self._check_events()
-            self._check_fleet_edges()
-            self.ship.update()
-            self.bullets.update()
-            self._update_bullets()
-            self._update_aliens()
+
+            if self.stats.game_active:
+                self.ship.update()
+                self.bullets.update()
+                self._update_bullets()
+                self._update_aliens()
+                self._check_fleet_edges()
+
             self._update_screen()
-            #Отображение событий клавиатуры и мыши
-            pygame.display.flip()
 
-
-
-
+            self._update_screen()
     def _check_events(self):
         """Отслеживание событий клавиатуры и мыши"""
         for event in pygame.event.get():
@@ -87,8 +84,6 @@ class AlienInvasion:
 
     def _update_bullets(self):
         """Обновляет позицию снарядов и уничтожает старые"""
-        #Обновляет позицию снарядов
-        self.bullets.update()
         #Удаление снарядов, вышедших за экран
         for bullet in self.bullets.copy():
             if bullet.rect.bottom<=0:
@@ -110,14 +105,15 @@ class AlienInvasion:
     def _update_aliens(self):
         """Обновляет позиции всех пришельцев во флоте"""
         self.aliens.update()
-        self._ship_hit()
+
 
         #Проверка коллизий "Пришелец - корабль"
         if pygame.sprite.spritecollideany(self.ship , self.aliens):
             self._ship_hit()
-
-        #Проверить добрались ли пришельцы
+            # Проверить добрались ли пришельцы
         self._check_aliens_bottom()
+
+
 
     def _ship_hit(self):
         """Обрабатывает столкновение корабля с пришельцем"""
