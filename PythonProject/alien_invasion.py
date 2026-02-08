@@ -7,6 +7,7 @@ from bullet import Bullet
 from alien import Alien
 from game_stats import GameStats
 from button import Button
+from scoreboard import Scoreboard
 
 
 class AlienInvasion:
@@ -22,11 +23,12 @@ class AlienInvasion:
         # self.settings.screen_height=self.screen.get_rect().height
         pygame.display.set_caption("Alien Invasion")
 
-
         #Цвет фона
         self.bg_color=(50,50,100)
         # Создание экземпляра для хранения игровой статистики
+        #И панели результатов
         self.stats = GameStats(self)
+        self.sb = Scoreboard(self)
         self.ship=Ship(self)
         self.bullets=pygame.sprite.Group()
         self.aliens= pygame.sprite.Group()
@@ -108,6 +110,12 @@ class AlienInvasion:
             # Уничтожение существующих снарядов и создание нового флота
             self.bullets.empty()
             self._create_fleet()
+        if collisions:
+            for aliens in collisions.values():
+                self.stats.score += self.settings.alien_points * len(aliens )
+            self.sb.prep_score()
+            self.sb.check_high_score()
+            self.sb.prep_ships()
 
     def _update_aliens(self):
         """Обновляет позиции всех пришельцев во флоте"""
@@ -127,6 +135,7 @@ class AlienInvasion:
         if self.stats.ship_left>0:
         #Уменьшение ship_left
             self.stats.ship_left -= 1
+            self.sb.prep_ships()
 
         #Очистка списков пришельцев и снарядов
             self.aliens.empty()
@@ -140,6 +149,7 @@ class AlienInvasion:
             sleep(0.5)
         else:
             self.stats.game_active= False
+            pygame.mouse.set_visible(True)
 
     def _update_screen(self):
         # При каждом проходе цикла перерисовывается экран.
@@ -148,6 +158,7 @@ class AlienInvasion:
         for bullet in self.bullets.sprites():
             bullet.draw_bullet()
         self.aliens.draw(self.screen)
+        self.sb.show_score()
         #Кнопка Play отображается в том случае, если игра неактивна
         if not self.stats.game_active:
             self.play_button.draw_button()
@@ -208,8 +219,23 @@ class AlienInvasion:
 
     def _check_play_button(self,mouse_pos):
         """Запускает новую игру при нажатии PLAY"""
+        bullet_clicked = self.play_button.rect.collidepoint(mouse_pos)
         if self.play_button.rect.collidepoint(mouse_pos):
+            self.settings.initialize_dynamic_settings()
+            #Сброс игровой статистики
+            self.stats.reset_stats()
             self.stats.game_active = True
+            self.sb.prep_score()
+            #Очистка списков пришельцев и снарядов
+            self.aliens.empty()
+            self.bullets.empty()
+            #Указатель мыши скрывается
+            pygame.mouse.set_visible(False)
+
+            #Создание нового флота и размещение корабля по центру
+            self._create_fleet()
+            self.ship.center_ship()
+
 
 if __name__ == "__main__":
     ai=AlienInvasion()
